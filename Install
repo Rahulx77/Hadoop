@@ -1,0 +1,123 @@
+sudo apt update && sudo apt upgrade -y
+
+sudo apt install openjdk-8-jdk -y
+java -version; javac -version
+
+
+wget https://downloads.apache.org/hadoop/common/hadoop-3.3.6/hadoop-3.3.6.tar.gz
+
+sha512sum hadoop-3.3.6.tar.gz
+
+tar -xvzf hadoop-3.3.6.tar.gz
+
+sudo mv hadoop-3.3.6 /usr/local/hadoop
+
+sudo chown -R $USER:$USER /usr/local/hadoop
+
+Edit the ~/.bashrc file:
+nano ~/.bashrc
+
+# Hadoop Environment Variables
+export HADOOP_HOME=/usr/local/hadoop
+export HADOOP_INSTALL=$HADOOP_HOME
+export HADOOP_MAPRED_HOME=$HADOOP_HOME
+export HADOOP_COMMON_HOME=$HADOOP_HOME
+export HADOOP_HDFS_HOME=$HADOOP_HOME
+export HADOOP_YARN_HOME=$HADOOP_HOME
+export HADOOP_CONF_DIR=$HADOOP_HOME/etc/hadoop
+export PATH=$PATH:$HADOOP_HOME/bin:$HADOOP_HOME/sbin
+
+
+source ~/.bashrc
+
+echo $HADOOP_HOME
+
+nano $HADOOP_HOME/etc/hadoop/hadoop-env.sh
+
+export JAVA_HOME=
+
+export JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64
+
+nano $HADOOP_HOME/etc/hadoop/core-site.xml
+
+
+<configuration>
+<property>
+<name>fs.defaultFS</name>
+<value>hdfs://localhost:9000</value>
+</property>
+</configuration>
+
+nano $HADOOP_HOME/etc/hadoop/hdfs-site.xml
+
+<configuration>
+<property>
+<name>dfs.replication</name>
+<value>1</value>
+</property>
+<property>
+<name>dfs.name.dir</name>
+<value>file:///usr/local/hadoop/hdfs/namenode</value>
+</property>
+<property>
+<name>dfs.data.dir</name>
+<value>file:///usr/local/hadoop/hdfs/datanode</value>
+</property>
+</configuration>
+
+mkdir -p /usr/local/hadoop/hdfs/namenode
+mkdir -p /usr/local/hadoop/hdfs/datanode
+
+sudo chown -R $USER:$USER /usr/local/hadoop/hdfs
+
+cp $HADOOP_HOME/etc/hadoop/mapred-site.xml.template $HADOOP_HOME/etc/hadoop/mapred-site.xml
+nano $HADOOP_HOME/etc/hadoop/mapred-site.xml
+
+<configuration>
+<property>
+<name>mapreduce.framework.name</name>
+<value>yarn</value>
+</property>
+<property>
+<name>yarn.app.mapreduce.am.env</name>
+<value>HADOOP_MAPRED_HOME=/usr/local/hadoop</value>
+</property>
+<property>
+<name>mapreduce.map.env</name>
+<value>HADOOP_MAPRED_HOME=/usr/local/hadoop</value>
+</property>
+<property>
+<name>mapreduce.reduce.env</name>
+<value>HADOOP_MAPRED_HOME=/usr/local/hadoop</value>
+</property>
+</configuration>
+
+
+nano $HADOOP_HOME/etc/hadoop/yarn-site.xml
+
+<configuration>
+<property>
+<name>yarn.nodemanager.aux-services</name>
+<value>mapreduce_shuffle</value>
+</property>
+</configuration>
+
+sudo apt install ssh -y
+ssh-keygen -t rsa -P ""
+cat ~/.ssh/id_rsa.pub >> ~/.ssh/authorized_keys
+chmod 600 ~/.ssh/authorized_keys
+
+
+ssh localhost
+
+hdfs namenode -format
+
+start-dfs.sh
+
+
+start-yarn.sh
+
+jps
+
+
+
